@@ -3,8 +3,8 @@
 namespace FondOfSpryker\Client\ConfigurablePagination\Model;
 
 use FondOfSpryker\Client\ConfigurablePagination\ConfigurablePaginationConfig;
-use FondOfSpryker\Client\ConfigurablePagination\Plugin\Config\CatalogSearchConfigBuilder;
 use Generated\Shared\Transfer\PaginationConfigTransfer;
+use Spryker\Client\Catalog\Plugin\Config\CatalogSearchConfigBuilder;
 
 class PaginationConfigBuilder implements PaginationConfigBuilderInterface
 {
