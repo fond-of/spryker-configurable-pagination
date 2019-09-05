@@ -2,6 +2,8 @@
 
 namespace FondOfSpryker\Client\ConfigurablePagination;
 
+use FondOfSpryker\Client\Config\DefaultPaginationConfigBuilder;
+use FondOfSpryker\Client\Config\DefaultPaginationConfigBuilderInterface;
 use FondOfSpryker\Client\ConfigurablePagination\Model\PaginationConfigBuilder;
 use FondOfSpryker\Client\ConfigurablePagination\Model\PaginationConfigBuilderInterface;
 use Spryker\Client\Catalog\CatalogFactory;
@@ -17,5 +19,19 @@ class ConfigurablePaginationFactory extends CatalogFactory
     public function createPaginationConfigBuilder(): PaginationConfigBuilderInterface
     {
         return new PaginationConfigBuilder($this->getConfig());
+    }
+
+    /**
+     * @return \FondOfSpryker\Client\Config\DefaultPaginationConfigBuilderInterface
+     */
+    public function createDefaultPaginationConfigBuilder(): DefaultPaginationConfigBuilderInterface
+    {
+        $defaultPaginationConfigBuilder = new DefaultPaginationConfigBuilder();
+
+        $defaultPaginationConfigBuilder->setPaginationConfigTransfer(
+            $this->createPaginationConfigBuilder()->build()
+        );
+
+        return $defaultPaginationConfigBuilder;
     }
 }
