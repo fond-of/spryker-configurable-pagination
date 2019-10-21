@@ -90,6 +90,7 @@ class PaginatedResultFormatterPluginTest extends Unit
         $this->currentPage = 1;
 
         $this->paginatedResultFormatterPlugin = new PaginatedResultFormatterPlugin();
+        $this->paginatedResultFormatterPlugin->setFactory($this->configurablePaginationFactoryMock);
     }
 
     /**
@@ -105,6 +106,8 @@ class PaginatedResultFormatterPluginTest extends Unit
      */
     public function testFormatSearchResult(): void
     {
+        $reflectionMethod = $this->getReflectionMethodByName('formatSearchResult');
+
         $this->configurablePaginationFactoryMock->expects($this->atLeastOnce())
             ->method('createDefaultPaginationConfigBuilder')
             ->willReturn($this->defaultPaginationConfigBuilderMock);
@@ -125,10 +128,7 @@ class PaginatedResultFormatterPluginTest extends Unit
             ->method('getPaginationConfigTransfer')
             ->willReturn($this->paginationConfigTransferMock);
 
-        $foo = self::getMethod('formatSearchResult');
-        $obj = new PaginatedResultFormatterPlugin();
-        $obj->setFactory($this->configurablePaginationFactoryMock);
-        $this->assertInstanceOf(PaginationSearchResultTransfer::class, $foo->invokeArgs($obj, [$this->resultSetMock, $this->requestParameters]));
+        $this->assertInstanceOf(PaginationSearchResultTransfer::class, $reflectionMethod->invokeArgs($this->paginatedResultFormatterPlugin, [$this->resultSetMock, $this->requestParameters]));
     }
 
     /**
@@ -138,11 +138,13 @@ class PaginatedResultFormatterPluginTest extends Unit
      *
      * @return \ReflectionMethod
      */
-    protected static function getMethod(string $name): ReflectionMethod
+    protected function getReflectionMethodByName(string $name): ReflectionMethod
     {
-        $class = new ReflectionClass(PaginatedResultFormatterPlugin::class);
-        $method = $class->getMethod($name);
-        $method->setAccessible(true);
-        return $method;
+        $reflectionClass = new ReflectionClass(PaginatedResultFormatterPlugin::class);
+
+        $reflectionMethod = $reflectionClass->getMethod($name);
+        $reflectionMethod->setAccessible(true);
+
+        return $reflectionMethod;
     }
 }
