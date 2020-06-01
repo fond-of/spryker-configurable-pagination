@@ -10,7 +10,7 @@
   ],
   "require": {
     "php": ">=7.1",
-    "spryker/search-elasticsearch:": "^1.0.0",
+    "spryker/search-elasticsearch": "^1.0.0",
     "spryker/search-extension": "^1.0.0"
   },
   "require-dev": {
