@@ -1,11 +1,11 @@
 <?php
 
-namespace FondOfSpryker\Client\ConfigurablePagination\Plugin\Elasticsearch\QueryExpander;
+namespace FondOfSpryker\Client\ConfigurablePagination\Plugin\SearchExtension;
 
 use Elastica\Query;
 use Spryker\Client\Kernel\AbstractPlugin;
-use Spryker\Client\Search\Dependency\Plugin\QueryExpanderPluginInterface;
-use Spryker\Client\Search\Dependency\Plugin\QueryInterface;
+use Spryker\Client\SearchExtension\Dependency\Plugin\QueryExpanderPluginInterface;
+use Spryker\Client\SearchExtension\Dependency\Plugin\QueryInterface;
 
 /**
  * @method \FondOfSpryker\Client\ConfigurablePagination\ConfigurablePaginationFactory getFactory()
@@ -13,15 +13,14 @@ use Spryker\Client\Search\Dependency\Plugin\QueryInterface;
 class PaginatedQueryExpanderPlugin extends AbstractPlugin implements QueryExpanderPluginInterface
 {
     /**
-     * {@inheritdoc}
-     *  - Allows to fetch cms pages result by page
+     * {@inheritDoc}
      *
      * @api
      *
-     * @param \Spryker\Client\Search\Dependency\Plugin\QueryInterface $searchQuery
+     * @param \Spryker\Client\SearchExtension\Dependency\Plugin\QueryInterface $searchQuery
      * @param array $requestParameters
      *
-     * @return \Spryker\Client\Search\Dependency\Plugin\QueryInterface
+     * @return \Spryker\Client\SearchExtension\Dependency\Plugin\QueryInterface
      */
     public function expandQuery(QueryInterface $searchQuery, array $requestParameters = []): QueryInterface
     {
@@ -38,10 +37,9 @@ class PaginatedQueryExpanderPlugin extends AbstractPlugin implements QueryExpand
      */
     protected function addPaginationToQuery(Query $query, array $requestParameters): void
     {
-        $defaultPaginationConfigBuilder = $this->getFactory()->createDefaultPaginationConfigBuilder();
-
-        $currentPage = $defaultPaginationConfigBuilder->getCurrentPage($requestParameters);
-        $itemsPerPage = $defaultPaginationConfigBuilder->getCurrentItemsPerPage($requestParameters);
+        $paginationConfig = $this->getFactory()->createPaginationConfigBuilder()->build();
+        $currentPage = $paginationConfig->getCurrentPage($requestParameters);
+        $itemsPerPage = $paginationConfig->getCurrentItemsPerPage($requestParameters);
 
         $query->setFrom(($currentPage - 1) * $itemsPerPage);
         $query->setSize($itemsPerPage);

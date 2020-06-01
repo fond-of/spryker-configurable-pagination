@@ -4,7 +4,6 @@ namespace FondOfSpryker\Client\ConfigurablePagination\Model;
 
 use Codeception\Test\Unit;
 use FondOfSpryker\Client\ConfigurablePagination\ConfigurablePaginationConfig;
-use Generated\Shared\Transfer\PaginationConfigTransfer;
 
 class PaginationConfigBuilderTest extends Unit
 {
@@ -59,6 +58,6 @@ class PaginationConfigBuilderTest extends Unit
             ->method('getValidItemsPerPageOptions')
             ->willReturn($this->validItemsPerPageOptions);
 
-        $this->assertInstanceOf(PaginationConfigTransfer::class, $this->paginationConfigBuilder->build());
+        $this->assertInstanceOf(PaginationConfig::class, $this->paginationConfigBuilder->build());
     }
 }

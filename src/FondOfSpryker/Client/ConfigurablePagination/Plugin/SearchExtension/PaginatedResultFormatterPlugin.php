@@ -1,19 +1,23 @@
 <?php
 
-namespace FondOfSpryker\Client\ConfigurablePagination\Plugin\Elasticsearch\ResultFormatter;
+namespace FondOfSpryker\Client\ConfigurablePagination\Plugin\SearchExtension;
 
 use Elastica\ResultSet;
 use Generated\Shared\Transfer\PaginationSearchResultTransfer;
-use Spryker\Client\Search\Plugin\Elasticsearch\ResultFormatter\AbstractElasticsearchResultFormatterPlugin;
+use Spryker\Client\SearchElasticsearch\Plugin\ResultFormatter\AbstractElasticsearchResultFormatterPlugin;
 
 /**
  * @method \FondOfSpryker\Client\ConfigurablePagination\ConfigurablePaginationFactory getFactory()
  */
 class PaginatedResultFormatterPlugin extends AbstractElasticsearchResultFormatterPlugin
 {
-    protected const NAME = 'pagination';
+    public const NAME = 'pagination';
 
     /**
+     * {@inheritDoc}
+     *
+     * @api
+     *
      * @return string
      */
     public function getName(): string
@@ -27,26 +31,21 @@ class PaginatedResultFormatterPlugin extends AbstractElasticsearchResultFormatte
      *
      * @return \Generated\Shared\Transfer\PaginationSearchResultTransfer
      */
-    protected function formatSearchResult(
-        ResultSet $searchResult,
-        array $requestParameters
-    ): PaginationSearchResultTransfer {
-        $defaultPaginationConfigBuilder = $this
-            ->getFactory()
-            ->createDefaultPaginationConfigBuilder();
+    protected function formatSearchResult(ResultSet $searchResult, array $requestParameters): PaginationSearchResultTransfer
+    {
+        $paginationConfig = $this->getFactory()->createPaginationConfigBuilder()->build();
 
-        $itemsPerPage = $defaultPaginationConfigBuilder->getCurrentItemsPerPage($requestParameters);
+        $itemsPerPage = $paginationConfig->getCurrentItemsPerPage($requestParameters);
         $maxPage = (int)ceil($searchResult->getTotalHits() / $itemsPerPage);
-        $currentPage = min($defaultPaginationConfigBuilder->getCurrentPage($requestParameters), $maxPage);
+        $currentPage = min($paginationConfig->getCurrentPage($requestParameters), $maxPage);
 
         $paginationSearchResultTransfer = new PaginationSearchResultTransfer();
-
         $paginationSearchResultTransfer
             ->setNumFound($searchResult->getTotalHits())
             ->setCurrentPage($currentPage)
             ->setMaxPage($maxPage)
             ->setCurrentItemsPerPage($itemsPerPage)
-            ->setConfig(clone $defaultPaginationConfigBuilder->getPaginationConfigTransfer());
+            ->setConfig(clone $paginationConfig->get());
 
         return $paginationSearchResultTransfer;
     }

@@ -1,11 +1,12 @@
 <?php
 
-namespace FondOfSpryker\Client\ConfigurablePagination\Plugin\Elasticsearch\ResultFormatter;
+namespace FondOfSpryker\Client\ConfigurablePagination\Plugin\SearchExtension;
 
 use Codeception\Test\Unit;
 use Elastica\ResultSet;
-use FondOfSpryker\Client\Config\DefaultPaginationConfigBuilder;
 use FondOfSpryker\Client\ConfigurablePagination\ConfigurablePaginationFactory;
+use FondOfSpryker\Client\ConfigurablePagination\Model\PaginationConfigBuilderInterface;
+use FondOfSpryker\Client\ConfigurablePagination\Model\PaginationConfigInterface;
 use Generated\Shared\Transfer\PaginationConfigTransfer;
 use Generated\Shared\Transfer\PaginationSearchResultTransfer;
 use ReflectionClass;
@@ -14,7 +15,7 @@ use ReflectionMethod;
 class PaginatedResultFormatterPluginTest extends Unit
 {
     /**
-     * @var \FondOfSpryker\Client\ConfigurablePagination\Plugin\Elasticsearch\ResultFormatter\PaginatedResultFormatterPlugin
+     * @var \FondOfSpryker\Client\ConfigurablePagination\Plugin\SearchExtension\PaginatedResultFormatterPlugin
      */
     protected $paginatedResultFormatterPlugin;
 
@@ -34,9 +35,14 @@ class PaginatedResultFormatterPluginTest extends Unit
     protected $configurablePaginationFactoryMock;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|\FondOfSpryker\Client\Config\DefaultPaginationConfigBuilder
+     * @var \PHPUnit\Framework\MockObject\MockObject|\FondOfSpryker\Client\ConfigurablePagination\Model\PaginationConfigBuilderInterface
      */
-    protected $defaultPaginationConfigBuilderMock;
+    protected $paginationConfigBuilderMock;
+
+    /**
+     * @var \PHPUnit\Framework\MockObject\MockObject|\FondOfSpryker\Client\ConfigurablePagination\Model\PaginationConfigInterface
+     */
+    protected $paginationConfigMock;
 
     /**
      * @var int
@@ -73,7 +79,11 @@ class PaginatedResultFormatterPluginTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->defaultPaginationConfigBuilderMock = $this->getMockBuilder(DefaultPaginationConfigBuilder::class)
+        $this->paginationConfigBuilderMock = $this->getMockBuilder(PaginationConfigBuilderInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->paginationConfigMock = $this->getMockBuilder(PaginationConfigInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -109,10 +119,14 @@ class PaginatedResultFormatterPluginTest extends Unit
         $reflectionMethod = $this->getReflectionMethodByName('formatSearchResult');
 
         $this->configurablePaginationFactoryMock->expects($this->atLeastOnce())
-            ->method('createDefaultPaginationConfigBuilder')
-            ->willReturn($this->defaultPaginationConfigBuilderMock);
+            ->method('createPaginationConfigBuilder')
+            ->willReturn($this->paginationConfigBuilderMock);
 
-        $this->defaultPaginationConfigBuilderMock->expects($this->atLeastOnce())
+        $this->paginationConfigBuilderMock->expects($this->atLeastOnce())
+            ->method('build')
+            ->willReturn($this->paginationConfigMock);
+
+        $this->paginationConfigMock->expects($this->atLeastOnce())
             ->method('getCurrentItemsPerPage')
             ->willReturn($this->currentItemsPerPage);
 
@@ -120,15 +134,18 @@ class PaginatedResultFormatterPluginTest extends Unit
             ->method('getTotalHits')
             ->willReturn($this->totalHits);
 
-        $this->defaultPaginationConfigBuilderMock->expects($this->atLeastOnce())
+        $this->paginationConfigMock->expects($this->atLeastOnce())
             ->method('getCurrentPage')
             ->willReturn($this->currentPage);
 
-        $this->defaultPaginationConfigBuilderMock->expects($this->atLeastOnce())
-            ->method('getPaginationConfigTransfer')
+        $this->paginationConfigMock->expects($this->atLeastOnce())
+            ->method('get')
             ->willReturn($this->paginationConfigTransferMock);
 
-        $this->assertInstanceOf(PaginationSearchResultTransfer::class, $reflectionMethod->invokeArgs($this->paginatedResultFormatterPlugin, [$this->resultSetMock, $this->requestParameters]));
+        $this->assertInstanceOf(
+            PaginationSearchResultTransfer::class,
+            $reflectionMethod->invokeArgs($this->paginatedResultFormatterPlugin, [$this->resultSetMock, $this->requestParameters])
+        );
     }
 
     /**

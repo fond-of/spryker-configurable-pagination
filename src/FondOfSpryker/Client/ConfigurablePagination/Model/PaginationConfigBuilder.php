@@ -3,8 +3,8 @@
 namespace FondOfSpryker\Client\ConfigurablePagination\Model;
 
 use FondOfSpryker\Client\ConfigurablePagination\ConfigurablePaginationConfig;
+use FondOfSpryker\Shared\ConfigurablePagination\ConfigurablePaginationConstants;
 use Generated\Shared\Transfer\PaginationConfigTransfer;
-use Spryker\Client\Catalog\Plugin\Config\CatalogSearchConfigBuilder;
 
 class PaginationConfigBuilder implements PaginationConfigBuilderInterface
 {
@@ -22,16 +22,19 @@ class PaginationConfigBuilder implements PaginationConfigBuilderInterface
     }
 
     /**
-     * @return \Generated\Shared\Transfer\PaginationConfigTransfer
+     * @return \FondOfSpryker\Client\ConfigurablePagination\Model\PaginationConfigInterface
      */
-    public function build(): PaginationConfigTransfer
+    public function build(): PaginationConfigInterface
     {
-        $paginationConfig = new PaginationConfigTransfer();
-
-        $paginationConfig->setParameterName(CatalogSearchConfigBuilder::PARAMETER_NAME_PAGE)
-            ->setItemsPerPageParameterName(CatalogSearchConfigBuilder::PARAMETER_NAME_ITEMS_PER_PAGE)
+        $paginationConfigTransfer = (new PaginationConfigTransfer())
+            ->setParameterName(ConfigurablePaginationConstants::PAGINATION_PARAMETER_NAME_PAGE)
+            ->setItemsPerPageParameterName(ConfigurablePaginationConstants::PAGINATION_PARAMETER_NAME_ITEMS_PER_PAGE)
             ->setDefaultItemsPerPage($this->config->getItemsPerPage())
             ->setValidItemsPerPageOptions($this->config->getValidItemsPerPageOptions());
+
+        $paginationConfig = new PaginationConfig();
+
+        $paginationConfig->setPagination($paginationConfigTransfer);
 
         return $paginationConfig;
     }
