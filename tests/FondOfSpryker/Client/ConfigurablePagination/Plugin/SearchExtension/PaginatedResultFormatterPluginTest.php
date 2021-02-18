@@ -108,7 +108,7 @@ class PaginatedResultFormatterPluginTest extends Unit
      */
     public function testGetName(): void
     {
-        $this->assertSame('pagination', $this->paginatedResultFormatterPlugin->getName());
+        static::assertSame('pagination', $this->paginatedResultFormatterPlugin->getName());
     }
 
     /**
@@ -118,31 +118,75 @@ class PaginatedResultFormatterPluginTest extends Unit
     {
         $reflectionMethod = $this->getReflectionMethodByName('formatSearchResult');
 
-        $this->configurablePaginationFactoryMock->expects($this->atLeastOnce())
+        $this->configurablePaginationFactoryMock->expects(static::atLeastOnce())
             ->method('createPaginationConfigBuilder')
             ->willReturn($this->paginationConfigBuilderMock);
 
-        $this->paginationConfigBuilderMock->expects($this->atLeastOnce())
+        $this->paginationConfigBuilderMock->expects(static::atLeastOnce())
             ->method('build')
             ->willReturn($this->paginationConfigMock);
 
-        $this->paginationConfigMock->expects($this->atLeastOnce())
+        $this->paginationConfigMock->expects(static::atLeastOnce())
             ->method('getCurrentItemsPerPage')
             ->willReturn($this->currentItemsPerPage);
 
-        $this->resultSetMock->expects($this->atLeast(2))
+        $this->resultSetMock->expects(static::atLeastOnce())
             ->method('getTotalHits')
             ->willReturn($this->totalHits);
 
-        $this->paginationConfigMock->expects($this->atLeastOnce())
+        $this->resultSetMock->expects(static::atLeastOnce())
+            ->method('getAggregations')
+            ->willReturn([]);
+
+        $this->paginationConfigMock->expects(static::atLeastOnce())
             ->method('getCurrentPage')
             ->willReturn($this->currentPage);
 
-        $this->paginationConfigMock->expects($this->atLeastOnce())
+        $this->paginationConfigMock->expects(static::atLeastOnce())
             ->method('get')
             ->willReturn($this->paginationConfigTransferMock);
 
-        $this->assertInstanceOf(
+        static::assertInstanceOf(
+            PaginationSearchResultTransfer::class,
+            $reflectionMethod->invokeArgs($this->paginatedResultFormatterPlugin, [$this->resultSetMock, $this->requestParameters])
+        );
+    }
+
+    /**
+     * @return void
+     */
+    public function testFormatSearchResultWithTotalCollapsedHitsAggregation(): void
+    {
+        $reflectionMethod = $this->getReflectionMethodByName('formatSearchResult');
+
+        $this->configurablePaginationFactoryMock->expects(static::atLeastOnce())
+            ->method('createPaginationConfigBuilder')
+            ->willReturn($this->paginationConfigBuilderMock);
+
+        $this->paginationConfigBuilderMock->expects(static::atLeastOnce())
+            ->method('build')
+            ->willReturn($this->paginationConfigMock);
+
+        $this->paginationConfigMock->expects(static::atLeastOnce())
+            ->method('getCurrentItemsPerPage')
+            ->willReturn($this->currentItemsPerPage);
+
+        $this->resultSetMock->expects(static::never())
+            ->method('getTotalHits');
+
+        $this->resultSetMock->expects(static::atLeastOnce())
+            ->method('getAggregations')
+            ->willReturn(['total_collapsed_hits' => ['value' => $this->totalHits]]);
+
+        $this->paginationConfigMock->expects(static::atLeastOnce())
+            ->method('getCurrentPage')
+            ->willReturn($this->currentPage);
+
+        $this->paginationConfigMock->expects(static::atLeastOnce())
+            ->method('get')
+            ->willReturn($this->paginationConfigTransferMock);
+
+        static::assertInstanceOf(
             PaginationSearchResultTransfer::class,
             $reflectionMethod->invokeArgs($this->paginatedResultFormatterPlugin, [$this->resultSetMock, $this->requestParameters])
         );
