@@ -13,6 +13,9 @@ class PaginatedResultFormatterPlugin extends AbstractElasticsearchResultFormatte
 {
     public const NAME = 'pagination';
 
+    protected const AGGREGATION_NAME_TOTAL_COLLAPSED_HITS = 'total_collapsed_hits';
+    protected const TOTAL_COLLAPSED_HITS_VALUE = 'value';
+
     /**
      * {@inheritDoc}
      *
@@ -31,22 +34,38 @@ class PaginatedResultFormatterPlugin extends AbstractElasticsearchResultFormatte
      *
      * @return \Generated\Shared\Transfer\PaginationSearchResultTransfer
      */
-    protected function formatSearchResult(ResultSet $searchResult, array $requestParameters): PaginationSearchResultTransfer
-    {
+    protected function formatSearchResult(
+        ResultSet $searchResult,
+        array $requestParameters
+    ): PaginationSearchResultTransfer {
         $paginationConfig = $this->getFactory()->createPaginationConfigBuilder()->build();
 
+        $totalHits = $this->getTotalHitsBySearchResult($searchResult);
         $itemsPerPage = $paginationConfig->getCurrentItemsPerPage($requestParameters);
-        $maxPage = (int)ceil($searchResult->getTotalHits() / $itemsPerPage);
+        $maxPage = (int)ceil($totalHits / $itemsPerPage);
         $currentPage = min($paginationConfig->getCurrentPage($requestParameters), $maxPage);
 
-        $paginationSearchResultTransfer = new PaginationSearchResultTransfer();
-        $paginationSearchResultTransfer
-            ->setNumFound($searchResult->getTotalHits())
+        return (new PaginationSearchResultTransfer())
+            ->setNumFound($totalHits)
             ->setCurrentPage($currentPage)
             ->setMaxPage($maxPage)
             ->setCurrentItemsPerPage($itemsPerPage)
             ->setConfig(clone $paginationConfig->get());
+    }
 
-        return $paginationSearchResultTransfer;
+    /**
+     * @param \Elastica\ResultSet $searchResult
+     *
+     * @return int
+     */
+    protected function getTotalHitsBySearchResult(ResultSet $searchResult): int
+    {
+        $aggregations = $searchResult->getAggregations();
+
+        if (!isset($aggregations[static::AGGREGATION_NAME_TOTAL_COLLAPSED_HITS][static::TOTAL_COLLAPSED_HITS_VALUE])) {
+            return $searchResult->getTotalHits();
+        }
+
+        return $aggregations[static::AGGREGATION_NAME_TOTAL_COLLAPSED_HITS][static::TOTAL_COLLAPSED_HITS_VALUE];
     }
 }
