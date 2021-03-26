@@ -3,8 +3,7 @@
 namespace FondOfSpryker\Client\ConfigurablePagination;
 
 use Codeception\Test\Unit;
-use FondOfSpryker\Client\Config\DefaultPaginationConfigBuilderInterface;
-use FondOfSpryker\Client\ConfigurablePagination\Model\PaginationConfigBuilderInterface;
+use FondOfSpryker\Client\ConfigurablePagination\Model\PaginationConfigBuilder;
 
 class ConfigurablePaginationFactoryTest extends Unit
 {
@@ -38,14 +37,9 @@ class ConfigurablePaginationFactoryTest extends Unit
      */
     public function testCreatePaginationConfigBuilder(): void
     {
-        $this->assertInstanceOf(PaginationConfigBuilderInterface::class, $this->configurablePaginationFactoryMock->createPaginationConfigBuilder());
-    }
-
-    /**
-     * @return void
-     */
-    public function testCreateDefaultPaginationConfigBuilder(): void
-    {
-        $this->assertInstanceOf(DefaultPaginationConfigBuilderInterface::class, $this->configurablePaginationFactoryMock->createDefaultPaginationConfigBuilder());
+        $this->assertInstanceOf(
+            PaginationConfigBuilder::class,
+            $this->configurablePaginationFactoryMock->createPaginationConfigBuilder()
+        );
     }
 }

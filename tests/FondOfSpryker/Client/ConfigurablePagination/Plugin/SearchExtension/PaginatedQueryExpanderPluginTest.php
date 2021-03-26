@@ -1,22 +1,23 @@
 <?php
 
-namespace FondOfSpryker\Client\ConfigurablePagination\Plugin\Elasticsearch\QueryExpander;
+namespace FondOfSpryker\Client\ConfigurablePagination\Plugin\SearchExtension;
 
 use Codeception\Test\Unit;
 use Elastica\Query;
-use FondOfSpryker\Client\Config\DefaultPaginationConfigBuilder;
 use FondOfSpryker\Client\ConfigurablePagination\ConfigurablePaginationFactory;
-use Spryker\Client\Search\Dependency\Plugin\QueryInterface;
+use FondOfSpryker\Client\ConfigurablePagination\Model\PaginationConfigBuilderInterface;
+use FondOfSpryker\Client\ConfigurablePagination\Model\PaginationConfigInterface;
+use Spryker\Client\SearchExtension\Dependency\Plugin\QueryInterface;
 
 class PaginatedQueryExpanderPluginTest extends Unit
 {
     /**
-     * @var \FondOfSpryker\Client\ConfigurablePagination\Plugin\Elasticsearch\QueryExpander\PaginatedQueryExpanderPlugin
+     * @var \FondOfSpryker\Client\ConfigurablePagination\Plugin\SearchExtension\PaginatedQueryExpanderPlugin
      */
     protected $paginatedQueryExpanderPlugin;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|\Spryker\Client\Search\Dependency\Plugin\QueryInterface
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Spryker\Client\SearchExtension\Dependency\Plugin\QueryInterface
      */
     protected $queryInterfaceMock;
 
@@ -26,14 +27,19 @@ class PaginatedQueryExpanderPluginTest extends Unit
     protected $configurablePaginationFactoryMock;
 
     /**
+     * @var \PHPUnit\Framework\MockObject\MockObject|\FondOfSpryker\Client\ConfigurablePagination\Model\PaginationConfigInterface
+     */
+    protected $paginationConfigMock;
+
+    /**
      * @var \PHPUnit\Framework\MockObject\MockObject|\Elastica\Query
      */
     protected $queryMock;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|\FondOfSpryker\Client\Config\DefaultPaginationConfigBuilder
+     * @var \PHPUnit\Framework\MockObject\MockObject|\FondOfSpryker\Client\ConfigurablePagination\Model\PaginationConfigBuilderInterface
      */
-    protected $defaultPaginationConfigBuilderMock;
+    protected $paginationConfigBuilderMock;
 
     /**
      * @var int
@@ -64,7 +70,11 @@ class PaginatedQueryExpanderPluginTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->defaultPaginationConfigBuilderMock = $this->getMockBuilder(DefaultPaginationConfigBuilder::class)
+        $this->paginationConfigBuilderMock = $this->getMockBuilder(PaginationConfigBuilderInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->paginationConfigMock = $this->getMockBuilder(PaginationConfigInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -86,17 +96,24 @@ class PaginatedQueryExpanderPluginTest extends Unit
             ->willReturn($this->queryMock);
 
         $this->configurablePaginationFactoryMock->expects($this->atLeastOnce())
-            ->method('createDefaultPaginationConfigBuilder')
-            ->willReturn($this->defaultPaginationConfigBuilderMock);
+            ->method('createPaginationConfigBuilder')
+            ->willReturn($this->paginationConfigBuilderMock);
 
-        $this->defaultPaginationConfigBuilderMock->expects($this->atLeastOnce())
+        $this->paginationConfigBuilderMock->expects($this->atLeastOnce())
+            ->method('build')
+            ->willReturn($this->paginationConfigMock);
+
+        $this->paginationConfigMock->expects($this->atLeastOnce())
             ->method('getCurrentPage')
             ->willReturn($this->currentPage);
 
-        $this->defaultPaginationConfigBuilderMock->expects($this->atLeastOnce())
+        $this->paginationConfigMock->expects($this->atLeastOnce())
             ->method('getCurrentItemsPerPage')
             ->willReturn($this->currentItemsPerPage);
 
-        $this->assertInstanceOf(QueryInterface::class, $this->paginatedQueryExpanderPlugin->expandQuery($this->queryInterfaceMock));
+        $this->assertInstanceOf(
+            QueryInterface::class,
+            $this->paginatedQueryExpanderPlugin->expandQuery($this->queryInterfaceMock)
+        );
     }
 }
